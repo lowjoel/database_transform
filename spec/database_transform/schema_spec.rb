@@ -2,7 +2,7 @@ require 'spec_helper'
 
 RSpec.describe DatabaseTransform::Schema do
   class DummySchema < DatabaseTransform::Schema
-    migrate_table :source, to: :destination do
+    migrate_table :source, to: 'destination' do
     end
   end
 
@@ -28,6 +28,16 @@ RSpec.describe DatabaseTransform::Schema do
       it "contains the parent class's tables" do
         expect(DummySchema2.tables).to include(DummySchema.tables)
       end
+    end
+  end
+
+  describe '.migrate_table' do
+    it 'defines models for symbol source tables' do
+      expect(DummySchema::Source.const_defined?(:Source)).to be_truthy
+    end
+
+    it 'defines models for string destination tables' do
+      expect(DummySchema::Source.const_defined?(:Destination)).to be_truthy
     end
   end
 end

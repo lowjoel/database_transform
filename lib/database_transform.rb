@@ -7,4 +7,5 @@ module DatabaseTransform
 
   autoload :Schema
   autoload :ModelStore
+  autoload :SchemaTable
 end
