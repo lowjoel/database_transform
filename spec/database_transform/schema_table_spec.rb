@@ -20,4 +20,18 @@ RSpec.describe DatabaseTransform::SchemaTable do
       expect(subject.instance_variable_get(:@columns).find { |c| c[:from] == [:name] }).to be_truthy
     end
   end
+
+  describe '#save' do
+    it 'declares a conditional save for the given column' do
+      subject.save if: proc { c.dirty? }
+      expect(subject.instance_variable_get(:@save)).to be_truthy
+    end
+
+    context 'when #save is called twice' do
+      it 'raises an error' do
+        subject.save if: proc { c.dirty? }
+        expect { subject.save if: proc { c.dirty? } }.to raise_error(ArgumentError)
+      end
+    end
+  end
 end

@@ -57,4 +57,22 @@ class DatabaseTransform::SchemaTable
         block: block
     }
   end
+
+  # Specifies a save clause.
+  #
+  # @option options [Proc] unless The record will be saved if the proc returns a false value. This cannot be used
+  #   together with if.
+  # @option options [Proc] if A proc to call. The record will be saved if the proc returns a true value. This cannot be
+  #   used together with unless.
+  def save(options = {})
+    raise ArgumentError.new('unless and if cannot be both specified') if options[:unless] && options[:if]
+    raise ArgumentError.new('Cannot specify a save clause twice for the same table') if @save
+
+    if options[:unless]
+      clause = options.delete(:unless)
+      options[:if] = ->(*callback_args) { !self.instance_exec(*callback_args, &clause) }
+    end
+
+    @save = options
+  end
 end
