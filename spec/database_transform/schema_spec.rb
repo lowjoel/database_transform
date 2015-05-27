@@ -13,6 +13,14 @@ RSpec.describe DatabaseTransform::Schema do
       expect(DummySchema).to respond_to(:tables)
     end
 
+    it 'has a Source module' do
+      expect(DummySchema.const_defined?(:Source)).to be_truthy
+    end
+
+    it 'has a Destination module' do
+      expect(DummySchema.const_defined?(:Destination)).to be_truthy
+    end
+
     context 'when inheriting from a subclass of DatabaseTransform::Schema' do
       class DummySchema2 < DummySchema
       end
