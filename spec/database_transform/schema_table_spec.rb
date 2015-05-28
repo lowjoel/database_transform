@@ -164,8 +164,8 @@ RSpec.describe DatabaseTransform::SchemaTable do
       it 'provides all columns to the block' do
         Destination.delete_all
         subject.run_migration
-        expect(destination_model.count).not_to be(0)
-        destination_model.all.each do |row|
+        expect(Destination.count).not_to be(0)
+        Destination.all.each do |row|
           expect(row.content).to eq(format('%d counts!', row.val))
         end
       end
