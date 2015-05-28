@@ -5,6 +5,7 @@ module DatabaseTransform
 
   autoload :DuplicateError
 
+  autoload :SchemaTables
   autoload :Schema
   autoload :ModelStore
   autoload :SchemaTable

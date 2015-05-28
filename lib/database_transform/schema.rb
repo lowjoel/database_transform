@@ -1,8 +1,6 @@
 class DatabaseTransform::Schema
   extend DatabaseTransform::ModelStore
-
-  class_attribute :tables
-  self.tables = {}
+  extend DatabaseTransform::SchemaTables
 
   # Migrates a table from the source database to the new database.
   #

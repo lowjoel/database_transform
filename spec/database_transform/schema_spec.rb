@@ -29,6 +29,13 @@ RSpec.describe DatabaseTransform::Schema do
         expect(DummySchema2.tables).to include(DummySchema.tables)
       end
     end
+
+    context 'when two subclasses of DatabaseTransform::Schema exists' do
+      class DummySchema3 < DatabaseTransform::Schema; end
+      it 'contains separate tables' do
+        expect(DummySchema3.tables.size).not_to eq(DummySchema.tables.size)
+      end
+    end
   end
 
   describe '.migrate_table' do
