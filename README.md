@@ -32,7 +32,7 @@ Or install it yourself as:
 
 ## Usage
 
-Database Transform is built with ActiveRecord in mind. First, define a new database conndtion to the old database in
+Database Transform is built with ActiveRecord in mind. First, define a new database connection to the old database in
 database.yml:
 
 ```yaml
