@@ -44,6 +44,17 @@ RSpec.describe DatabaseTransform::SchemaTable do
   describe '#migrate!' do
     before { dummy_records }
 
+    context 'before a migration' do
+      subject { source_model }
+      it 'does not have any migrated records' do
+        expect(source_model.transformed?(source_model.first.id)).to be_falsey
+      end
+
+      it 'raises an error when trying to transform a record' do
+        expect { source_model.transform(source_model.first.id) }.to raise_error(ActiveRecord::RecordNotFound) }
+      end
+    end
+
     context 'when a default scope is specified' do
       let(:default_scope) { proc { where('id % 2 = 0') } }
       before do
