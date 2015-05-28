@@ -16,8 +16,8 @@ class DatabaseTransform::Schema
     raise ArgumentError.new if source_table.nil?
     raise DatabaseTransform::DuplicateError.new(source_table) if tables.has_key?(source_table)
 
-    source_table = generate_model(Source, source_table) unless source_table.is_a?(Class)
-    args[:to] = generate_model(Destination, args[:to]) if !args[:to].nil? && !args[:to].is_a?(Class)
+    source_table = generate_model(const_get(:Source), source_table) unless source_table.is_a?(Class)
+    args[:to] = generate_model(const_get(:Destination), args[:to]) if !args[:to].nil? && !args[:to].is_a?(Class)
     set_connection_for_model(source_table, deduce_connection_name)
 
     migration = DatabaseTransform::SchemaTable.new(source_table, args[:to], args[:default_scope])
@@ -32,6 +32,7 @@ class DatabaseTransform::Schema
       class_name = ActiveSupport::Inflector.camelize(ActiveSupport::Inflector.singularize(table_name.to_s))
       within.module_eval <<-EndCode, __FILE__, __LINE__ + 1
         class #{class_name} < ActiveRecord::Base
+          self.table_name = '#{table_name.to_s}'
         end
         #{class_name.to_s.singularize.camelize}
       EndCode
