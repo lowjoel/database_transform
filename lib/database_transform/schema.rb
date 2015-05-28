@@ -1,5 +1,5 @@
 class DatabaseTransform::Schema
-  extend DatabaseTransform::ModelStore
+  extend DatabaseTransform::SchemaModelStore
   extend DatabaseTransform::SchemaTables
 
   # Migrates a table from the source database to the new database.

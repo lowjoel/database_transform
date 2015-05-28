@@ -7,7 +7,9 @@ module DatabaseTransform
   autoload :UnsatisfiedDependencyError
 
   autoload :SchemaTables
+  autoload :SchemaModelStore
   autoload :Schema
-  autoload :ModelStore
+
+  autoload :SchemaTableRecordMapping
   autoload :SchemaTable
 end
