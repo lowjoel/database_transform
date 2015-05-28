@@ -11,13 +11,14 @@ RSpec.configure do
 
   ActiveRecord::Base.establish_connection(:default)
   ActiveRecord::Base.connection.execute <<SQL
-  --Create the dummy database
   CREATE TABLE IF NOT EXISTS sources (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     val NUMERIC,
     content TEXT
   );
+SQL
 
+  ActiveRecord::Base.connection.execute <<SQL
   CREATE TABLE IF NOT EXISTS destinations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     val NUMERIC,
