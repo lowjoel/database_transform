@@ -21,13 +21,14 @@ RSpec.configure do
         content TEXT
       );
 
-      INSERT INTO users (given_name, mail) VALUES
-        ('A', 'a@b.com'),
-        ('C', 'c@d.com');
+      INSERT INTO users (given_name, mail) VALUES ('A', 'a@b.com');
+      INSERT INTO users (given_name, mail) VALUES ('C', 'c@d.com');
 
       INSERT INTO posts (uid, content) VALUES
-        ((SELECT uid FROM users ORDER BY random() LIMIT 1), 'AAA'),
-        ((SELECT uid FROM users ORDER BY random() LIMIT 1), 'AAA'),
+        ((SELECT uid FROM users ORDER BY random() LIMIT 1), 'AAA');
+      INSERT INTO posts (uid, content) VALUES
+        ((SELECT uid FROM users ORDER BY random() LIMIT 1), 'AAA');
+      INSERT INTO posts (uid, content) VALUES
         ((SELECT uid FROM users ORDER BY random() LIMIT 1), 'BBB');
 SQL
   end
