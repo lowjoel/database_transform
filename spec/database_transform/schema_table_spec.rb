@@ -25,6 +25,18 @@ RSpec.describe DatabaseTransform::SchemaTable do
       subject.column :name
       expect(subject.instance_variable_get(:@columns).find { |c| c[:from] == [:name] }).to be_truthy
     end
+
+    context 'when a null attribute is given but no to column is specified' do
+      it 'raises an error' do
+        expect { subject.column :name, null: false do end }.to raise_error(ArgumentError)
+      end
+    end
+
+    context 'when multiple columns are specified and a to column is specified without a block' do
+      it 'raises an error' do
+        expect { subject.column :uid, :name, to: :name }.to raise_error(ArgumentError)
+      end
+    end
   end
 
   describe '#save' do
@@ -226,13 +238,8 @@ RSpec.describe DatabaseTransform::SchemaTable do
       end
 
       context 'when the column does not have a destination column' do
-        before do
-          subject.column :val, null: false do
-          end
-        end
-
         it 'raises an error' do
-          expect { subject.run_migration }.to raise_error(ArgumentError)
+          expect { subject.column :val, null: false do end }.to raise_error(ArgumentError)
         end
       end
     end

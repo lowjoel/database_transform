@@ -51,6 +51,7 @@ class DatabaseTransform::SchemaTable
 
     raise ArgumentError.new unless to_column.nil? || to_column.is_a?(Symbol)
     raise ArgumentError.new if !block && source_columns.length > 1
+    raise ArgumentError.new if options[:null] == false && !to_column
 
     # Store the mapping
     @columns << {
@@ -137,7 +138,7 @@ class DatabaseTransform::SchemaTable
       break if !new.nil? && new.frozen?
       next if new.nil? || column[:to].nil?
 
-      if new_value.nil? && !column[:null].nil? && !column[:null]
+      if new_value.nil? && column[:null] == false
         old_value = @primary_key ? old.send(@primary_key) : old.inspect
         raise ArgumentError.new("Key #{column[:from]} for row #{old_value} in #{@source.table_name} maps to null for "\
           'non-nullable column')
