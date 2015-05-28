@@ -125,21 +125,19 @@ class DatabaseTransform::SchemaTable
     end
   end
 
+  # Migrates one record from the source model to the destination.
+  #
+  # @param [ActiveRecord::Base] old The record to map.
+  # @return [Void]
   def migrate_record!(old)
     # Instantiate a new model record
     new = @destination.new if @destination
 
     # Map the columns over
     migrate_record_columns!(old, new)
-
     return if new.nil? || new.frozen?
 
-    # Save. Skip if the conditional callback is given
-    return if @save && @save[:if] && !new.instance_exec(&@save[:if])
-
-    # TODO: Make validation optional using the save clause.
-    new.save!(validate: false) unless new.destroyed?
-    @source.memoize_transform(old.send(@primary_key), new) if @primary_key
+    save_migrated_record(old, new)
   end
 
   # Applies the column transforms over the old record to the new record.
@@ -203,5 +201,19 @@ class DatabaseTransform::SchemaTable
     end
 
     new.send("#{column[:to]}=", new_value)
+  end
+
+  # Saves the newly transformed record, and then memoizes the transformed value.
+  #
+  # @param [ActiveRecord::Base] old The source row to map the values for.
+  # @param [ActiveRecord::Base] new The destination row to map the values to.
+  # @return [Void]
+  def save_migrated_record(old, new)
+    # Save. Skip if the conditional callback is given
+    return if @save && @save[:if] && !new.instance_exec(&@save[:if])
+
+    # TODO: Make validation optional using the save clause.
+    new.save!(validate: false) unless new.destroyed?
+    @source.memoize_transform(old.send(@primary_key), new) if @primary_key
   end
 end
