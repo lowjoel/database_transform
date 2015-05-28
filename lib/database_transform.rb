@@ -12,4 +12,6 @@ module DatabaseTransform
 
   autoload :SchemaTableRecordMapping
   autoload :SchemaTable
+
+  require 'database_transform/railtie' if defined?(Rails)
 end

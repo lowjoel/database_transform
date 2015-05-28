@@ -1,3 +1,5 @@
+# Simultaneous code coverage reporting to Coveralls and Code Climate.
+# Latest version can be found at https://gist.github.com/lowjoel/6c2f2d3a08bb3786994f
 require 'simplecov'
 
 module CoverageHelper
@@ -58,6 +60,7 @@ if ENV['CI']
   # Code coverage exclusions
   SimpleCov.start do
     # SimpleCov configuration
-    # add_filter '/lib/extensions/active_record/connection_adapters/table_definition.rb'
+    add_filter '/lib/database_transform/railtie.rb'
+    add_filter '/lib/database_transform/tasks/*'
   end
 end
