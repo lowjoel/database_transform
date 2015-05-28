@@ -48,6 +48,18 @@ RSpec.describe DatabaseTransform::Schema do
     end
   end
 
+  describe '.deduce_connection_name' do
+    class DummySchema4 < DummySchema; end
+    it 'checks the underscored schema name' do
+      expect(DummySchema4.send(:deduce_connection_name)).to eq('dummy_schema4')
+    end
+
+    it 'uses the _production suffix if the normal name does not exist' do
+      # The dummy_schema configuration we use has the _production suffix deliberately added
+      expect(DummySchema.send(:deduce_connection_name)).to eq('dummy_schema_production')
+    end
+  end
+
   describe '#transform!' do
     context 'when the dependencies cannot be met' do
       class DummyCyclicDependencySchema < DatabaseTransform::Schema

@@ -83,6 +83,9 @@ few variants of the schema name will be checked:
  - my_old_app
  - my_old_app_production
 
+Only the *source* schema will be annotated to use the other connection. The *destination* schema will be used through
+the application's normal configuration (i.e. depends on the value of `ENV['RAILS_ENV']`.)
+
 ## Contributing
 
 1. Fork it ( https://github.com/[my-github-username]/database_transform/fork )

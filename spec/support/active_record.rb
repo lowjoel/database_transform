@@ -5,7 +5,8 @@ RSpec.configure do
   }
 
   ActiveRecord::Base.configurations['default'] = dummy_connection
-  ActiveRecord::Base.configurations['dummy_schema'] = dummy_connection
+  ActiveRecord::Base.configurations['dummy_schema_production'] = dummy_connection
+  ActiveRecord::Base.configurations['dummy_schema4'] = dummy_connection
   ActiveRecord::Base.configurations['dummy_cyclic_dependency_schema'] = dummy_connection
 
   ActiveRecord::Base.establish_connection(:default)
