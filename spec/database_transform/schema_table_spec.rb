@@ -151,5 +151,24 @@ RSpec.describe DatabaseTransform::SchemaTable do
         end
       end
     end
+
+    context 'when no destination model is specified' do
+      let(:destination_model) { nil }
+      before do
+        subject.column :val
+        subject.column :val, :content, to: :content do |val, content|
+          Destination.create(val: val, content: content)
+        end
+      end
+
+      it 'provides all columns to the block' do
+        Destination.delete_all
+        subject.run_migration
+        expect(destination_model.count).not_to be(0)
+        destination_model.all.each do |row|
+          expect(row.content).to eq(format('%d counts!', row.val))
+        end
+      end
+    end
   end
 end
