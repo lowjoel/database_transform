@@ -93,5 +93,7 @@ class DatabaseTransform::Schema
       table_config[:migration].run_migration(@database, self, table_config[:to], table_config[:default_scope])
       migrated_this_pass << table
     end
+
+    migrated_this_pass
   end
 end
