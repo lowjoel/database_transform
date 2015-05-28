@@ -52,7 +52,12 @@ RSpec.describe DatabaseTransform::SchemaTable do
     before { dummy_records }
 
     context 'before a migration' do
-      subject { source_model }
+      class Source2 < ActiveRecord::Base
+        self.table_name = 'sources'
+      end
+      let(:source_model) { Source2 }
+      before { subject }
+
       it 'does not have any migrated records' do
         expect(source_model.transformed?(source_model.first.id)).to be_falsey
       end
