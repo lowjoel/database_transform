@@ -1,5 +1,6 @@
 # Database Transform
 [![Build Status](https://travis-ci.org/lowjoel/database_transform.svg)](https://travis-ci.org/lowjoel/database_transform)
+[![Coverage Status](https://coveralls.io/repos/lowjoel/database_transform/badge.svg)](https://coveralls.io/r/lowjoel/database_transform)
 [![Code Climate](https://codeclimate.com/github/lowjoel/database_transform/badges/gpa.svg)](https://codeclimate.com/github/lowjoel/database_transform)
 
 This gem will allow you to transform a database's contents across schemas with a simple DSL. This is useful when
