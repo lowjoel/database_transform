@@ -46,12 +46,10 @@ class DatabaseTransform::SchemaTable
     # Get the columns
     options = args.extract_options!
     source_columns = args
-    to_column = options[:to]
+    to_column = options.delete(:to)
     to_column ||= source_columns.first unless block
 
-    raise ArgumentError.new unless to_column.nil? || to_column.is_a?(Symbol)
-    raise ArgumentError.new if !block && source_columns.length > 1
-    raise ArgumentError.new if options[:null] == false && !to_column
+    validate_column_options!(source_columns, to_column, options, block)
 
     # Store the mapping
     @columns << {
@@ -94,6 +92,13 @@ class DatabaseTransform::SchemaTable
   end
 
   private
+
+  # Validates the options given to the #column method.
+  def validate_column_options!(source_columns, to_column, options, block)
+    raise ArgumentError.new unless to_column.nil? || to_column.is_a?(Symbol)
+    raise ArgumentError.new if !block && source_columns.length > 1
+    raise ArgumentError.new if options[:null] == false && !to_column
+  end
 
   # Performs the given operation, timing it and printing before and after messages for executing the block.
   #
