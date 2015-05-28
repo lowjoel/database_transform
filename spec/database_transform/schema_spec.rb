@@ -47,4 +47,19 @@ RSpec.describe DatabaseTransform::Schema do
       expect(DummySchema::Source.const_defined?(:Destination)).to be_truthy
     end
   end
+
+  describe '#transform!' do
+    context 'when the dependencies cannot be met' do
+      class DummyCyclicDependencySchema < DatabaseTransform::Schema
+        migrate_table :a, to: :b, depends: [:a] do
+        end
+      end
+
+      subject { DummyCyclicDependencySchema.new }
+
+      it 'raises DatabaseTransform::UnsatisfiedDependencyError' do
+        expect { subject.transform! }.to raise_error(DatabaseTransform::UnsatisfiedDependencyError)
+      end
+    end
+  end
 end

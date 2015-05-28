@@ -75,4 +75,9 @@ class DatabaseTransform::SchemaTable
 
     @save = options
   end
+
+  # @api private
+  #   To be called only by Schema#run_migration
+  def run_migration(old_database_name, old_schema, model_class, default_scope)
+  end
 end

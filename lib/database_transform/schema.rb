@@ -52,6 +52,46 @@ class DatabaseTransform::Schema
   end
 
   # Runs the transform.
+  #
+  # @raise [DatabaseTransform::UnsatisfiedDependencyError] When the dependencies for a table cannot be satisfied, and no
+  #   progress can be made.
+  # @return [Void]
   def transform!
+    # The tables have dependencies; we must run them in order.
+    migrated = Set.new
+    queue = Set.new(tables.keys)
+
+    # We try to run all the migrations we can until no more can be run.
+    # If no more can run and the input queue is empty, we are done.
+    # If no more can run and the input queue is not empty, we have a dependency cycle.
+    begin
+      migrated_this_pass = transform_pass(migrated, queue)
+      fail DatabaseTransform::UnsatisfiedDependencyError.new(queue.to_a) if migrated_this_pass.empty? && !queue.empty?
+
+      queue -= migrated_this_pass
+      migrated += migrated_this_pass
+    end until queue.empty?
+  end
+
+  private
+
+  # Performs a transform over all elements of the queue who has its dependencies satisfied.
+  #
+  # @param [Array<Symbol>] migrated The models which have been migrated.
+  # @param [Array<Symbol>] queue The models which need to be migrated.
+  # @return [Set<Symbol>] The set of models which were migrated this pass.
+  def transform_pass(migrated, queue)
+    migrated_this_pass = Set.new
+    queue.each do |table|
+      # Check that all dependencies are satisfied
+      table_config = tables[table]
+      unmet_dependencies = table_config[:depends].select do |s|
+        !migrated.include?(s) && !migrated_this_pass.include?(s)
+      end
+      next unless unmet_dependencies.empty?
+
+      table_config[:migration].run_migration(@database, self, table_config[:to], table_config[:default_scope])
+      migrated_this_pass << table
+    end
   end
 end

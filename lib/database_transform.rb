@@ -4,6 +4,7 @@ module DatabaseTransform
   extend ActiveSupport::Autoload
 
   autoload :DuplicateError
+  autoload :UnsatisfiedDependencyError
 
   autoload :SchemaTables
   autoload :Schema
