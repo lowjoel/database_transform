@@ -1,5 +1,5 @@
 RSpec.configure do
-  ActiveRecord::Base.logger = Logger.new(STDOUT)
+  ActiveRecord::Base.logger = Logger.new(STDOUT) unless ENV['CI']
 
   dummy_connection = {
     'adapter' => 'sqlite3',
