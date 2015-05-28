@@ -81,7 +81,7 @@ class DatabaseTransform::SchemaTable
   #   To be called only by Schema#run_migration
   def run_migration
     before_message = format("-- migrating '%s' to '%s'\n", @source.table_name, @destination.table_name)
-    time_block(before_message, "   -> %fs\n", &:migrate!)
+    time_block(before_message, "   -> %fs\n", &method(:migrate!))
   end
 
   private

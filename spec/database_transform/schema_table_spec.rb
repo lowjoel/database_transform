@@ -52,7 +52,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
       it 'all records match the default scope' do
         destination_model.delete_all
-        subject.send(:migrate!)
+        subject.run_migration
         expect(destination_model.count).not_to be(0)
         destination_model.all.each do |row|
           expect(row.id % 2).to eq(0)
@@ -71,7 +71,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
         it 'provides all columns to the block' do
           destination_model.delete_all
-          subject.send(:migrate!)
+          subject.run_migration
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.content).to eq(format('%d%d counts!', row.val, row.val))
@@ -88,7 +88,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
         it 'sets the corresponding column with the result of the transform' do
           destination_model.delete_all
-          subject.send(:migrate!)
+          subject.run_migration
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.id % 2).to eq(1)
@@ -105,7 +105,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
         it 'does not modify the record' do
           destination_model.delete_all
-          subject.send(:migrate!)
+          subject.run_migration
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.val).to be_nil
@@ -123,7 +123,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
         it 'sets the corresponding column' do
           destination_model.delete_all
-          subject.send(:migrate!)
+          subject.run_migration
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.val.to_s).to eq(row.content)
@@ -143,7 +143,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
         end
         it 'sets the corresponding column with the same name in the destination' do
           destination_model.delete_all
-          subject.send(:migrate!)
+          subject.run_migration
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.content).not_to be_nil
