@@ -152,6 +152,25 @@ RSpec.describe DatabaseTransform::SchemaTable do
       end
     end
 
+    context 'when a primary key is specified' do
+      before do
+        subject.primary_key :id
+        subject.column :val
+        subject.column :val, :content, to: :content do |val, content|
+          format('%d%s', val, content)
+        end
+      end
+
+      it 'can find every new model object created' do
+        destination_model.delete_all
+        subject.run_migration
+        expect(destination_model.count).not_to be(0)
+        source_model.all.each do |row|
+          expect(source_model.transform(row.id)).to_not be_nil
+        end
+      end
+    end
+
     context 'when no destination model is specified' do
       let(:destination_model) { nil }
       before do

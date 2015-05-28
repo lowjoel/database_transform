@@ -13,10 +13,11 @@ class DatabaseTransform::Schema
   #    specified source table can be migrated.
   # @option args [Proc] default_scope The default scope of the old table to use when migrating.
   def self.migrate_table(source_table, args = {}, &proc)
-    raise DatabaseTransform::DuplicateError if tables.has_key?(source_table)
+    raise ArgumentError.new if source_table.nil?
+    raise DatabaseTransform::DuplicateError.new(source_table) if tables.has_key?(source_table)
 
     source_table = generate_model(Source, source_table) unless source_table.is_a?(Class)
-    args[:to] = generate_model(Destination, args[:to]) unless args[:to].is_a?(Class)
+    args[:to] = generate_model(Destination, args[:to]) if !args[:to].nil? && !args[:to].is_a?(Class)
     set_connection_for_model(source_table, deduce_connection_name)
 
     migration = DatabaseTransform::SchemaTable.new(source_table, args[:to], args[:default_scope])
@@ -31,22 +32,6 @@ class DatabaseTransform::Schema
       class_name = ActiveSupport::Inflector.camelize(ActiveSupport::Inflector.singularize(table_name.to_s))
       within.module_eval <<-EndCode, __FILE__, __LINE__ + 1
         class #{class_name} < ActiveRecord::Base
-          def self.map(old_primary_key)
-            @map ||= {}
-            unless @map.has_key?(old_primary_key)
-              raise ActiveRecord::RecordNotFound.new("Key \#{old_primary_key} in #{table_name}")
-            end
-
-            @map[old_primary_key]
-          end
-
-          private
-
-          # Called by TableMigration#run_migration
-          def self.assign_result(old_primary_key, result)
-            @map ||= {}
-            @map[old_primary_key] = result
-          end
         end
         #{class_name.to_s.singularize.camelize}
       EndCode

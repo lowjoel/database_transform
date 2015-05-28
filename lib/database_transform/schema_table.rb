@@ -7,7 +7,9 @@ class DatabaseTransform::SchemaTable
   # @param [nil, Proc] default_scope The default scope for querying the source table.
   def initialize(source, destination, default_scope)
     @source = source
+    @source.extend(DatabaseTransform::SchemaTableRecordMapping)
     @destination = destination
+    @destination.extend(DatabaseTransform::SchemaTableRecordMapping) if @destination
     @default_scope = default_scope
 
     @primary_key = nil
@@ -151,7 +153,7 @@ class DatabaseTransform::SchemaTable
 
     # TODO: Make validation optional using the save clause.
     new.save!(validate: false) unless new.destroyed?
-    @source.send(:assign_result, old.send(@primary_key), new) if @primary_key
+    @source.memoize_transform(old.send(@primary_key), new) if @primary_key
   end
 
   # Migrates the record's columns.
