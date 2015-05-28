@@ -130,24 +130,9 @@ class DatabaseTransform::SchemaTable
     new = @destination.new if @destination
 
     # Map the columns over
-    @columns.each do |column|
-      fail ArgumentError.new unless column.is_a?(Hash)
+    migrate_record_columns!(old, new)
 
-      new_value = migrate_record_field!(old, new, column[:from], column[:block])
-
-      break if !new.nil? && new.frozen?
-      next if new.nil? || column[:to].nil?
-
-      if new_value.nil? && column[:null] == false
-        old_value = @primary_key ? old.send(@primary_key) : old.inspect
-        raise ArgumentError.new("Key #{column[:from]} for row #{old_value} in #{@source.table_name} maps to null for "\
-          'non-nullable column')
-      end
-
-      new.send("#{column[:to]}=", new_value)
-    end
-
-    return unless new
+    return if new.nil? || new.frozen?
 
     # Save. Skip if the conditional callback is given
     return if @save && @save[:if] && !new.instance_exec(&@save[:if])
@@ -157,7 +142,27 @@ class DatabaseTransform::SchemaTable
     @source.memoize_transform(old.send(@primary_key), new) if @primary_key
   end
 
-  # Migrates the record's columns.
+  # Applies the column transforms over the old record to the new record.
+  #
+  # @param [ActiveRecord::Base] old The record to map.
+  # @param [ActiveRecord::Base] new The record to map to.
+  # @return [Void]
+  def migrate_record_columns!(old, new)
+    @columns.each do |column|
+      fail ArgumentError.new unless column.is_a?(Hash)
+
+      new_value = migrate_record_field!(old, new, column[:from], column[:block])
+
+      unless new.nil?
+        break if new.frozen?
+        next if column[:to].nil?
+
+        assign_record_field!(old, new, column, new_value)
+      end
+    end
+  end
+
+  # Migrates one record's field.
   #
   # @param [ActiveRecord::Base] source The source row to map the values for.
   # @param [ActiveRecord::Base] destination The destination row to map the values to.
@@ -180,5 +185,23 @@ class DatabaseTransform::SchemaTable
       # Call the proc
       block.call(*new_values)
     end
+  end
+
+  # Assigns the transformed value to the new record, raising an argument error if the field was declared to not be
+  # nullable and the value is null.
+  #
+  # @param [ActiveRecord::Base] old The source row to map the values for.
+  # @param [ActiveRecord::Base] new The destination row to map the values to.
+  # @param [Hash] column The column mapping definition being used.
+  # @param new_value The new value to assign to the field.
+  # @return [Void]
+  def assign_record_field!(old, new, column, new_value)
+    if new_value.nil? && column[:null] == false
+      old_value = @primary_key ? old.send(@primary_key) : old.inspect
+      raise ArgumentError.new("Key #{column[:from]} for row #{old_value} in #{@source.table_name} maps to null for "\
+            'non-nullable column')
+    end
+
+    new.send("#{column[:to]}=", new_value)
   end
 end

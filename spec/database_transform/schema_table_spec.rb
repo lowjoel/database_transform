@@ -243,5 +243,21 @@ RSpec.describe DatabaseTransform::SchemaTable do
         end
       end
     end
+
+    context 'when a column transform freezes the object' do
+      before do
+        subject.column :id do |id|
+          freeze
+          id
+        end
+        subject.column :val do
+          fail
+        end
+      end
+
+      it 'stops the transform' do
+        subject.run_migration
+      end
+    end
   end
 end
