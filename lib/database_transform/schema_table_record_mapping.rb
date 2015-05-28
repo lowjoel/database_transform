@@ -23,7 +23,7 @@ module DatabaseTransform::SchemaTableRecordMapping
   end
 
   # @api private
-  #   Called by TableMigration#run_migration
+  #   Called by TableTransform#run_transform
   def memoize_transform(old_primary_key, result)
     @transformed ||= {}
     @transformed[old_primary_key] = result

@@ -79,16 +79,16 @@ class DatabaseTransform::SchemaTable
   end
 
   # @api private
-  #   To be called only by Schema#run_migration
-  def run_migration
+  #   To be called only by Schema#run_transform
+  def run_transform
     before_message =
       if @destination
-        format("-- migrating '%s' to '%s'\n", @source.table_name, @destination.table_name)
+        format("-- transforming '%s' to '%s'\n", @source.table_name, @destination.table_name)
       else
-        format("-- migrating '%s'\n", @source.table_name)
+        format("-- transforming '%s'\n", @source.table_name)
       end
 
-    time_block(before_message, "   -> %fs\n", &method(:migrate!))
+    time_block(before_message, "   -> %fs\n", &method(:transform!))
   end
 
   private
@@ -119,30 +119,30 @@ class DatabaseTransform::SchemaTable
     result
   end
 
-  # Performs the migration with the given parameters.
+  # Performs the transform with the given parameters.
   #
   # @return [Void]
-  def migrate!
+  def transform!
     # For each item in the old model
     default_scope = @default_scope || @source.method(:all)
     @source.instance_exec(&default_scope).each do |record|
-      migrate_record!(record)
+      transform_record!(record)
     end
   end
 
-  # Migrates one record from the source model to the destination.
+  # Transforms one record from the source model to the destination.
   #
   # @param [ActiveRecord::Base] old The record to map.
   # @return [Void]
-  def migrate_record!(old)
+  def transform_record!(old)
     # Instantiate a new model record
     new = @destination.new if @destination
 
     # Map the columns over
-    migrate_record_columns!(old, new)
+    transform_record_columns!(old, new)
     return if new.nil? || new.frozen?
 
-    save_migrated_record(old, new)
+    save_transformed_record(old, new)
   end
 
   # Applies the column transforms over the old record to the new record.
@@ -150,11 +150,11 @@ class DatabaseTransform::SchemaTable
   # @param [ActiveRecord::Base] old The record to map.
   # @param [ActiveRecord::Base] new The record to map to.
   # @return [Void]
-  def migrate_record_columns!(old, new)
+  def transform_record_columns!(old, new)
     @columns.each do |column|
       fail ArgumentError.new unless column.is_a?(Hash)
 
-      new_value = migrate_record_field!(old, new, column[:from], column[:block])
+      new_value = transform_record_field!(old, new, column[:from], column[:block])
 
       unless new.nil?
         break if new.frozen?
@@ -165,14 +165,14 @@ class DatabaseTransform::SchemaTable
     end
   end
 
-  # Migrates one record's field.
+  # Transforms one record's field.
   #
   # @param [ActiveRecord::Base] source The source row to map the values for.
   # @param [ActiveRecord::Base] destination The destination row to map the values to.
   # @param [Array<Symbol>] from The source columns to be used to map to the destination column.
   # @param [Proc, nil] block The block to transform the source values to the destination value.
   # @return The result of applying the transform over the input values.
-  def migrate_record_field!(source, destination, from = nil, block = nil)
+  def transform_record_field!(source, destination, from = nil, block = nil)
     # Get the old record column values (can be a block taking multiple arguments)
     new_values = from.map { |k| source.send(k) }
 
@@ -213,7 +213,7 @@ class DatabaseTransform::SchemaTable
   # @param [ActiveRecord::Base] old The source row to map the values for.
   # @param [ActiveRecord::Base] new The destination row to map the values to.
   # @return [Void]
-  def save_migrated_record(old, new)
+  def save_transformed_record(old, new)
     # Save. Skip if the conditional callback is given
     return if @save && @save[:if] && !new.instance_exec(&@save[:if])
 

@@ -54,10 +54,10 @@ if ENV['CI']
   CoverageHelper.load('codeclimate-test-reporter') do
     CodeClimate::TestReporter.start
   end
-end
 
-# Code coverage exclusions
-SimpleCov.start do
-  # SimpleCov configuration
-  # add_filter '/lib/extensions/active_record/connection_adapters/table_definition.rb'
+  # Code coverage exclusions
+  SimpleCov.start do
+    # SimpleCov configuration
+    # add_filter '/lib/extensions/active_record/connection_adapters/table_definition.rb'
+  end
 end

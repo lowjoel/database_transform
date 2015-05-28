@@ -46,7 +46,7 @@ Then, define the define a transform in `db/transforms/my_old_app_schema.rb`:
 
 ```ruby
 class MyOldAppSchema < DatabaseTransform::Schema
-  migrate_table :users, to: ::User, scope: proc { where('uid <> 0') } do
+  transform_table :users, to: ::User, scope: proc { where('uid <> 0') } do
     primary_key :uid
     column :mail, to: :email
     column :pass, to: :password do |password|
@@ -54,7 +54,7 @@ class MyOldAppSchema < DatabaseTransform::Schema
     end
   end
   
-  migrate_table :posts, to: ::Post do
+  transform_table :posts, to: ::Post do
     primary_key :post_id
     column :uid, to: :user, null: false do |uid|
       Source::User.transform(uid)
@@ -65,9 +65,9 @@ end
 
 A summary of methods:
 
- - `migrate_table` tells Database Transform to perform the given transform over records in the given source table.
-   - The first argument is the table to migrate. This can be a symbol, string, or an ActiveRecord model.
-   - `to` specifies the new table to migrate to. This can be a symbol, string, or an ActiveRecord model.
+ - `transform_table` tells Database Transform to perform the given transform over records in the given source table.
+   - The first argument is the table to transform. This can be a symbol, string, or an ActiveRecord model.
+   - `to` specifies the new table to transform to. This can be a symbol, string, or an ActiveRecord model.
      - If either argument is a symbol or string, an ActiveRecord model is generated which allows access to the record's
        data.
        - Source models are found in the Source namespace, and can be used as the `posts.uid` column above.

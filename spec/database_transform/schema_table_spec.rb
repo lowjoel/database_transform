@@ -60,17 +60,17 @@ RSpec.describe DatabaseTransform::SchemaTable do
     end
   end
 
-  describe '#migrate!' do
+  describe '#transform!' do
     before { dummy_records }
 
-    context 'before a migration' do
+    context 'before a transformation' do
       class Source2 < ActiveRecord::Base
         self.table_name = 'sources'
       end
       let(:source_model) { Source2 }
       before { subject }
 
-      it 'does not have any migrated records' do
+      it 'does not have any transformed records' do
         expect(source_model.transformed?(source_model.first.id)).to be_falsey
       end
 
@@ -87,7 +87,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
       it 'all records match the default scope' do
         destination_model.delete_all
-        subject.run_migration
+        subject.run_transform
         expect(destination_model.count).not_to be(0)
         destination_model.all.each do |row|
           expect(row.id % 2).to eq(0)
@@ -106,7 +106,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
         it 'provides all columns to the block' do
           destination_model.delete_all
-          subject.run_migration
+          subject.run_transform
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.content).to eq(format('%d%d counts!', row.val, row.val))
@@ -123,7 +123,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
         it 'sets the corresponding column with the result of the transform' do
           destination_model.delete_all
-          subject.run_migration
+          subject.run_transform
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.id % 2).to eq(1)
@@ -140,7 +140,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
         it 'does not modify the record' do
           destination_model.delete_all
-          subject.run_migration
+          subject.run_transform
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.val).to be_nil
@@ -158,7 +158,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
         it 'sets the corresponding column' do
           destination_model.delete_all
-          subject.run_migration
+          subject.run_transform
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.val.to_s).to eq(row.content)
@@ -178,7 +178,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
         end
         it 'sets the corresponding column with the same name in the destination' do
           destination_model.delete_all
-          subject.run_migration
+          subject.run_transform
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.content).not_to be_nil
@@ -198,7 +198,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
       it 'can find every new model object created' do
         destination_model.delete_all
-        subject.run_migration
+        subject.run_transform
         expect(destination_model.count).not_to be(0)
         source_model.all.each do |row|
           expect(source_model.transform(row.id)).to_not be_nil
@@ -217,7 +217,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
       it 'provides all columns to the block' do
         Destination.delete_all
-        subject.run_migration
+        subject.run_transform
         expect(Destination.count).not_to be(0)
         Destination.all.each do |row|
           expect(row.content).to eq(format('%d counts!', row.val))
@@ -234,7 +234,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
       end
 
       it 'raises an exception' do
-        expect { subject.run_migration }.to raise_error(ArgumentError)
+        expect { subject.run_transform }.to raise_error(ArgumentError)
       end
 
       context 'when the column does not have a destination column' do
@@ -256,7 +256,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
       end
 
       it 'stops the transform' do
-        subject.run_migration
+        subject.run_transform
       end
     end
   end

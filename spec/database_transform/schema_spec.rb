@@ -2,7 +2,7 @@ require 'spec_helper'
 
 RSpec.describe DatabaseTransform::Schema do
   class DummySchema < DatabaseTransform::Schema
-    migrate_table :source, to: 'destination' do
+    transform_table :source, to: 'destination' do
     end
   end
 
@@ -38,7 +38,7 @@ RSpec.describe DatabaseTransform::Schema do
     end
   end
 
-  describe '.migrate_table' do
+  describe '.transform_table' do
     it 'defines models for symbol source tables' do
       expect(DummySchema::Source.const_defined?(:Source)).to be_truthy
     end
@@ -63,7 +63,7 @@ RSpec.describe DatabaseTransform::Schema do
   describe '#transform!' do
     context 'when the dependencies cannot be met' do
       class DummyCyclicDependencySchema < DatabaseTransform::Schema
-        migrate_table :a, to: :b, depends: [:a] do
+        transform_table :a, to: :b, depends: [:a] do
         end
       end
 

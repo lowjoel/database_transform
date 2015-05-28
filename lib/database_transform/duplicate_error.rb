@@ -5,6 +5,6 @@ class DatabaseTransform::DuplicateError < StandardError
   end
 
   def to_s
-    "The column #{@column} had multiple migrations."
+    "The column #{@column} had multiple transforms."
   end
 end

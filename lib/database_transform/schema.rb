@@ -2,25 +2,25 @@ class DatabaseTransform::Schema
   extend DatabaseTransform::SchemaModelStore
   extend DatabaseTransform::SchemaTables
 
-  # Migrates a table from the source database to the new database.
+  # Transforms a table from the source database to the new database.
   #
-  # Specify the source table to get entries from; a proc with the migration steps can be specified.
+  # Specify the source table to get entries from; a proc with the transform steps can be specified.
   #
   # @option args [String, Symbol, Class] to The name of the destination table; if this is not specified, no tables are
   #    copied. This can be a class, or a symbol which will be constantised; each column mapping proc will have access to
-  #    one instance of this table when performing a migration.
-  # @option args [Array<String, Symbol>] depends An array of symbols (source tables) which must be migrated before the
-  #    specified source table can be migrated.
-  # @option args [Proc] default_scope The default scope of the old table to use when migrating.
-  def self.migrate_table(source_table, args = {}, &proc)
+  #    one instance of this table when performing a transformation.
+  # @option args [Array<String, Symbol>] depends An array of symbols (source tables) which must be transformed before
+  #    the specified source table can be transformed.
+  # @option args [Proc] default_scope The default scope of the old table to use when transforming.
+  def self.transform_table(source_table, args = {}, &proc)
     raise ArgumentError.new if source_table.nil?
     raise DatabaseTransform::DuplicateError.new(source_table) if tables.has_key?(source_table)
 
     source_table, args[:to] = prepare_models(source_table, args[:to])
 
-    migration = DatabaseTransform::SchemaTable.new(source_table, args[:to], args[:default_scope])
-    tables[source_table] = { depends: args[:depends] || [], migration: migration }
-    migration.instance_eval(&proc) if proc
+    transform = DatabaseTransform::SchemaTable.new(source_table, args[:to], args[:default_scope])
+    tables[source_table] = { depends: args[:depends] || [], transform: transform }
+    transform.instance_eval(&proc) if proc
   end
 
   class << self
@@ -82,18 +82,18 @@ class DatabaseTransform::Schema
   # @return [Void]
   def transform!
     # The tables have dependencies; we must run them in order.
-    migrated = Set.new
+    transformed = Set.new
     queue = Set.new(tables.keys)
 
-    # We try to run all the migrations we can until no more can be run.
+    # We try to run all the transforms we can until no more can be run.
     # If no more can run and the input queue is empty, we are done.
     # If no more can run and the input queue is not empty, we have a dependency cycle.
     begin
-      migrated_this_pass = transform_pass(migrated, queue)
-      fail DatabaseTransform::UnsatisfiedDependencyError.new(queue.to_a) if migrated_this_pass.empty? && !queue.empty?
+      transformed_this_pass = transform_pass(transformed, queue)
+      fail DatabaseTransform::UnsatisfiedDependencyError.new(queue.to_a) if transformed_this_pass.empty? && !queue.empty?
 
-      queue -= migrated_this_pass
-      migrated += migrated_this_pass
+      queue -= transformed_this_pass
+      transformed += transformed_this_pass
     end until queue.empty?
   end
 
@@ -101,23 +101,23 @@ class DatabaseTransform::Schema
 
   # Performs a transform over all elements of the queue who has its dependencies satisfied.
   #
-  # @param [Array<Symbol>] migrated The models which have been migrated.
-  # @param [Array<Symbol>] queue The models which need to be migrated.
-  # @return [Set<Symbol>] The set of models which were migrated this pass.
-  def transform_pass(migrated, queue)
-    migrated_this_pass = Set.new
+  # @param [Array<Symbol>] transformed The models which have been transformed.
+  # @param [Array<Symbol>] queue The models which need to be transformed.
+  # @return [Set<Symbol>] The set of models which were transformed this pass.
+  def transform_pass(transformed, queue)
+    transformed_this_pass = Set.new
     queue.each do |table|
       # Check that all dependencies are satisfied
       table_config = tables[table]
       unmet_dependencies = table_config[:depends].select do |s|
-        !migrated.include?(s) && !migrated_this_pass.include?(s)
+        !transformed.include?(s) && !transformed_this_pass.include?(s)
       end
       next unless unmet_dependencies.empty?
 
-      table_config[:migration].run_migration
-      migrated_this_pass << table
+      table_config[:transform].run_transform
+      transformed_this_pass << table
     end
 
-    migrated_this_pass
+    transformed_this_pass
   end
 end
