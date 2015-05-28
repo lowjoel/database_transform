@@ -16,9 +16,7 @@ class DatabaseTransform::Schema
     raise ArgumentError.new if source_table.nil?
     raise DatabaseTransform::DuplicateError.new(source_table) if tables.has_key?(source_table)
 
-    source_table = generate_model(const_get(:Source), source_table) unless source_table.is_a?(Class)
-    args[:to] = generate_model(const_get(:Destination), args[:to]) if !args[:to].nil? && !args[:to].is_a?(Class)
-    set_connection_for_model(source_table, deduce_connection_name)
+    source_table, args[:to] = prepare_models(source_table, args[:to])
 
     migration = DatabaseTransform::SchemaTable.new(source_table, args[:to], args[:default_scope])
     tables[source_table] = { depends: args[:depends] || [], migration: migration }
@@ -27,6 +25,17 @@ class DatabaseTransform::Schema
 
   class << self
     private
+
+    def prepare_models(source_table, destination_table)
+      source_table = generate_model(const_get(:Source), source_table) unless source_table.is_a?(Class)
+      set_connection_for_model(source_table, deduce_connection_name)
+
+      if !destination_table.nil? && !destination_table.is_a?(Class)
+        destination_table = generate_model(const_get(:Destination), destination_table)
+      end
+
+      [source_table, destination_table]
+    end
 
     def generate_model(within, table_name)
       class_name = ActiveSupport::Inflector.camelize(ActiveSupport::Inflector.singularize(table_name.to_s))
