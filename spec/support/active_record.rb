@@ -1,4 +1,6 @@
 RSpec.configure do
+  ActiveRecord::Base.logger = Logger.new(STDOUT)
+
   dummy_connection = {
     'adapter' => 'sqlite3',
     'database' => File.join(__dir__, '..', 'test_database.sqlite3')
@@ -10,23 +12,19 @@ RSpec.configure do
   ActiveRecord::Base.configurations['dummy_cyclic_dependency_schema'] = dummy_connection
 
   ActiveRecord::Base.establish_connection(:default)
-  ActiveRecord::Base.connection.execute <<SQL
-  CREATE TABLE IF NOT EXISTS sources (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    val NUMERIC,
-    content TEXT
-  );
-SQL
+  puts "SQLite #{ActiveRecord::Base.connection.execute('SELECT sqlite_version()')}\n"
+  ActiveRecord::Base.connection.instance_variable_get(:@connection).execute_batch <<SQL
+    PRAGMA journal_mode = MEMORY;
+    CREATE TABLE IF NOT EXISTS sources (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      val NUMERIC,
+      content TEXT
+    );
 
-  ActiveRecord::Base.connection.execute <<SQL
-  CREATE TABLE IF NOT EXISTS destinations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    val NUMERIC,
-    content TEXT
-  );
-SQL
-
-  ActiveRecord::Base.connection.execute <<SQL
-  PRAGMA journal_mode = MEMORY
+    CREATE TABLE IF NOT EXISTS destinations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      val NUMERIC,
+      content TEXT
+    );
 SQL
 end
