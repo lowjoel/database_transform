@@ -41,16 +41,19 @@ class DatabaseTransform::SchemaTable
   def column(*args, &block)
     raise ArgumentError if args.length < 1
 
-    # Get the source columns
+    # Get the columns
     options = args.extract_options!
     source_columns = args
+    to_column = options[:to]
+    to_column ||= source_columns.first unless block
 
-    raise ArgumentError.new unless options[:to].nil? || options[:to].is_a?(Symbol)
+    raise ArgumentError.new unless to_column.nil? || to_column.is_a?(Symbol)
+    raise ArgumentError.new if !block && source_columns.length > 1
 
     # Store the mapping
     @columns << {
         from: source_columns,
-        to: options[:to],
+        to: to_column,
         null: options[:null].nil? ? true : options[:null],
         block: block
     }

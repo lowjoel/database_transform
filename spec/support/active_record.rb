@@ -25,4 +25,8 @@ SQL
     content TEXT
   );
 SQL
+
+  ActiveRecord::Base.connection.execute <<SQL
+  PRAGMA journal_mode = MEMORY
+SQL
 end
