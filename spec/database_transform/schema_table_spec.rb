@@ -39,6 +39,13 @@ RSpec.describe DatabaseTransform::SchemaTable do
         expect { subject.save if: proc { c.dirty? } }.to raise_error(ArgumentError)
       end
     end
+
+    context 'when #save is given an unless block' do
+      it 'inverts the condition' do
+        subject.save unless: proc { c.destroyed? }
+        expect(subject.instance_variable_get(:@save)[:if]).to be_truthy
+      end
+    end
   end
 
   describe '#migrate!' do
@@ -51,7 +58,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
       end
 
       it 'raises an error when trying to transform a record' do
-        expect { source_model.transform(source_model.first.id) }.to raise_error(ActiveRecord::RecordNotFound) }
+        expect { source_model.transform(source_model.first.id) }.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
 
@@ -197,6 +204,30 @@ RSpec.describe DatabaseTransform::SchemaTable do
         expect(Destination.count).not_to be(0)
         Destination.all.each do |row|
           expect(row.content).to eq(format('%d counts!', row.val))
+        end
+      end
+    end
+
+    context 'when a column is declared to be null: false' do
+      before do
+        subject.column :id
+        subject.column :val, to: :val, null: false do
+          nil
+        end
+      end
+
+      it 'raises an exception' do
+        expect { subject.run_migration }.to raise_error(ArgumentError)
+      end
+
+      context 'when the column does not have a destination column' do
+        before do
+          subject.column :val, null: false do
+          end
+        end
+
+        it 'raises an error' do
+          expect { subject.run_migration }.to raise_error(ArgumentError)
         end
       end
     end
