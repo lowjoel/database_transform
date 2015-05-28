@@ -39,21 +39,16 @@ class DatabaseTransform::SchemaTable
     raise ArgumentError if args.length < 1
 
     # Get the source columns
-    if args[args.length - 1].is_a?(Hash)
-      source_columns = args.take(args.length - 1)
-      args = args.extract_options!
-    else
-      source_columns = args
-      args = {}
-    end
+    options = args.extract_options!
+    source_columns = args
 
-    raise ArgumentError.new unless args[:to].nil? || args[:to].is_a?(Symbol)
+    raise ArgumentError.new unless options[:to].nil? || options[:to].is_a?(Symbol)
 
     # Store the mapping
     @columns << {
         from: source_columns,
-        to: args[:to],
-        null: args[:null].nil? ? true : args[:null],
+        to: options[:to],
+        null: options[:null].nil? ? true : options[:null],
         block: block
     }
   end
