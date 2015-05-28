@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 RSpec.describe DatabaseTransform::SchemaTable do
-  class DummyTableSchema < DatabaseTransform::Schema; end
   subject { DatabaseTransform::SchemaTable.new(source_model, destination_model, default_scope) }
   let(:source_model) { Source }
   let(:destination_model) { Destination }
@@ -31,6 +30,28 @@ RSpec.describe DatabaseTransform::SchemaTable do
       it 'raises an error' do
         subject.save if: proc { c.dirty? }
         expect { subject.save if: proc { c.dirty? } }.to raise_error(ArgumentError)
+      end
+    end
+  end
+
+  describe '#migrate!' do
+    context 'when a default scope is specified' do
+      let(:default_scope) { proc { where('id % 2 = 0') } }
+      before do
+        subject.column :id, to: :id
+        Source.transaction do
+          (0..10).each do |i|
+            Source.create(val: i, content: format('%d counts!', i))
+          end
+        end
+      end
+
+      it 'all records match the default scope' do
+        destination_model.delete_all
+        subject.send(:migrate!)
+        destination_model.all.each do |row|
+          expect(row.id % 2).to eq(0)
+        end
       end
     end
   end

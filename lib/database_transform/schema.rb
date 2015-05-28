@@ -119,7 +119,7 @@ class DatabaseTransform::Schema
       end
       next unless unmet_dependencies.empty?
 
-      table_config[:migration].run_migration(@database, self, table_config[:to], table_config[:default_scope])
+      table_config[:migration].run_migration
       migrated_this_pass << table
     end
 

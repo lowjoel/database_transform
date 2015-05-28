@@ -9,6 +9,9 @@ class DatabaseTransform::SchemaTable
     @source = source
     @destination = destination
     @default_scope = default_scope
+
+    @primary_key = nil
+    @save = nil
     @columns = []
   end
 
@@ -73,6 +76,97 @@ class DatabaseTransform::SchemaTable
 
   # @api private
   #   To be called only by Schema#run_migration
-  def run_migration(old_database_name, old_schema, model_class, default_scope)
+  def run_migration
+    before_message = format("-- migrating '%s' to '%s'\n", @source.table_name, @destination.table_name)
+    time_block(before_message, "   -> %fs\n", &:migrate!)
+  end
+
+  private
+
+  # Performs the given operation, timing it and printing before and after messages for executing the block.
+  #
+  # @param [String] before The message to print before the operation.
+  # @param [String] after The message to print after the operation. One floating point format argument is available,
+  #   which is the time taken for the operation.
+  # @return The result of executing the block.
+  # @yield The block to time.
+  def time_block(before, after, &proc)
+    start = Time.now
+    $stderr.puts(before)
+
+    result = proc.call
+
+    complete = Time.now - start
+    $stderr.printf(after, complete)
+
+    result
+  end
+
+  # Performs the migration with the given parameters.
+  #
+  # @return [Void]
+  def migrate!
+    # For each item in the old model
+    default_scope = @default_scope || @source.method(:all)
+    @source.instance_exec(&default_scope).each do |record|
+      migrate_record!(record)
+    end
+  end
+
+  def migrate_record!(old)
+    # Instantiate a new model record
+    new = @destination.new if @destination
+
+    # Map the columns over
+    @columns.each do |column|
+      fail ArgumentError.new unless column.is_a?(Hash)
+
+      new_value = migrate_record_field!(old, new, column[:from], column[:block])
+
+      break if !new.nil? && new.frozen?
+      next if new.nil? || column[:to].nil?
+
+      if new_value.nil? && !column[:null].nil? && !column[:null]
+        old_value = @primary_key ? old.send(@primary_key) : old.inspect
+        raise ArgumentError.new("Key #{column[:from]} for row #{old_value} in #{@source.table_name} maps to null for "\
+          'non-nullable column')
+      end
+
+      new.send("#{column[:to]}=", new_value)
+    end
+
+    return unless new
+
+    # Save. Skip if the conditional callback is given
+    return if @save && @save[:if] && !new.instance_exec(&@save[:if])
+
+    # TODO: Make validation optional using the save clause.
+    new.save!(validate: false) unless new.destroyed?
+    @source.send(:assign_result, old.send(@primary_key), new) if @primary_key
+  end
+
+  # Migrates the record's columns.
+  #
+  # @param [ActiveRecord::Base] source The source row to map the values for.
+  # @param [ActiveRecord::Base] destination The destination row to map the values to.
+  # @param [Array<Symbol>] from The source columns to be used to map to the destination column.
+  # @param [Proc, nil] block The block to transform the source values to the destination value.
+  # @return The result of applying the transform over the input values.
+  def migrate_record_field!(source, destination, from = nil, block = nil)
+    # Get the old record column values (can be a block taking multiple arguments)
+    new_values = from.map { |k| source.send(k) }
+
+    if block.nil?
+      # We have to ensure the value is a scalar
+      new_values.first
+    elsif destination
+      # Map the value if necessary.
+      # TODO: Provide the schema instance to the callback.
+      #       We should ensure that the block has a way to access the schema.
+      destination.instance_exec(*new_values, &block)
+    else
+      # Call the proc
+      block.call(*new_values)
+    end
   end
 end
