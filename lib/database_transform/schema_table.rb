@@ -187,10 +187,10 @@ class DatabaseTransform::SchemaTable
       new_values.first
     elsif destination
       # Map the value if necessary.
-      execute_transform_block!(schema, destination, block, new_values)
+      execute_transform_block!(schema, source, destination, block, new_values)
     else
       # Call the proc
-      execute_transform_block!(schema, Object.new, block, new_values)
+      execute_transform_block!(schema, source, Object.new, block, new_values)
     end
   end
 
@@ -199,11 +199,13 @@ class DatabaseTransform::SchemaTable
   # This allows the transform to be given an appropriate value of self such that it can access the old record and the schema being used.
   #
   # @param [DatabaseTransform::Schema] schema The schema being transformed.
+  # @param [ActiveRecord::Base] source_record The old record being transformed.
   # @param self_ The object to use as self in the context of the block.
   # @param [Proc] block The block to execute.
   # @param [Array] args The arguments to give to the block.
   # @return The result of applying the block.
-  def execute_transform_block!(schema, self_, block, args)
+  def execute_transform_block!(schema, source_record, self_, block, args)
+    self_.define_singleton_method(:source_record) { source_record }
     self_.define_singleton_method(:schema) { schema }
     self_.instance_exec(*args, &block)
   end

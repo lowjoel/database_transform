@@ -20,9 +20,9 @@ RSpec.describe DatabaseTransform do
       column :uid, to: :user, null: false do |uid|
         Source::User.transform(uid)
       end
-      column :content, to: :content do |content|
+      column :content do
+        self.content = source_record.content
         self.answer = schema.class.answer_to_life_the_universe_and_everything
-        content
       end
     end
   end

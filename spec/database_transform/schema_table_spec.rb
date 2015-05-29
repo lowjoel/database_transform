@@ -109,6 +109,13 @@ RSpec.describe DatabaseTransform::SchemaTable do
         subject.run_transform(DummySchema.new)
       end
 
+      it 'allows access to the source record' do
+        subject.column :val do |val|
+          fail if val != source_record.val
+        end
+        subject.run_transform
+      end
+
       context 'when multiple source columns are specified' do
         before do
           subject.column :val
