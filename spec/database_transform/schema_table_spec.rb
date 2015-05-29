@@ -96,6 +96,19 @@ RSpec.describe DatabaseTransform::SchemaTable do
     end
 
     context 'when a mapping transform is specified' do
+      class DummySchema < DatabaseTransform::Schema
+        class_attribute :magic_cookie
+        self.magic_cookie = 42
+      end
+
+      it 'allows access to the schema' do
+        subject.column :val, to: :val do |val|
+          fail unless schema.magic_cookie == 42
+          val
+        end
+        subject.run_transform(DummySchema.new)
+      end
+
       context 'when multiple source columns are specified' do
         before do
           subject.column :val

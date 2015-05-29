@@ -44,7 +44,8 @@ SQL
       CREATE TABLE IF NOT EXISTS posts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
-        content TEXT
+        content TEXT,
+        answer INTEGER
       );
 SQL
   end

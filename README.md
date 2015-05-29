@@ -89,7 +89,7 @@ A summary of methods:
      - If so, then the data from the old record is passed to the block as the first argument
      - In the context of the block, `self` refers to the new record.
      - `self` has an additional attribute `source_record` which refers to the old record. (TODO)
-     - `self` has an additional attribute `schema` which refers to the transformation schema. (TODO)
+     - `self` has an additional attribute `schema` which refers to the transformation schema.
  - `save` declares whether the new record should be saved.
    - `if` and `unless` accepts a block which will be evaluated to determine if the record should be saved.
    - `validate` will allow the record to be saved bypassing validations. This defaults to `true`.

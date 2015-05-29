@@ -114,7 +114,7 @@ class DatabaseTransform::Schema
       end
       next unless unmet_dependencies.empty?
 
-      table_config[:transform].run_transform
+      table_config[:transform].run_transform(self)
       transformed_this_pass << table
     end
 

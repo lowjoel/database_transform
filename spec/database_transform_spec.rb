@@ -6,6 +6,9 @@ RSpec.describe DatabaseTransform do
   end
 
   class BlogSchema < DatabaseTransform::Schema
+    class_attribute :answer_to_life_the_universe_and_everything
+    self.answer_to_life_the_universe_and_everything = 42
+
     transform_table :users, to: ::User, scope: proc { where('uid <> 0') } do
       primary_key :uid
       column :given_name
@@ -17,7 +20,10 @@ RSpec.describe DatabaseTransform do
       column :uid, to: :user, null: false do |uid|
         Source::User.transform(uid)
       end
-      column :content
+      column :content, to: :content do |content|
+        self.answer = schema.class.answer_to_life_the_universe_and_everything
+        content
+      end
     end
   end
 
@@ -36,6 +42,8 @@ RSpec.describe DatabaseTransform do
         expect(BlogSchema::Source::Post.transform(post.id).content).to eq(post.content)
         expect(BlogSchema::Source::Post.transform(post.id).user_id).to eq(
           BlogSchema::Source::User.transform(post.uid).id)
+        expect(BlogSchema::Source::Post.transform(post.id).answer).to eq(
+          BlogSchema.answer_to_life_the_universe_and_everything)
       end
     end
   end

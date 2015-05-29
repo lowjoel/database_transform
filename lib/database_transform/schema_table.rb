@@ -80,7 +80,7 @@ class DatabaseTransform::SchemaTable
 
   # @api private
   #   To be called only by Schema#run_transform
-  def run_transform
+  def run_transform(schema = nil)
     before_message =
       if @destination
         format("-- transforming '%s' to '%s'\n", @source.table_name, @destination.table_name)
@@ -88,7 +88,9 @@ class DatabaseTransform::SchemaTable
         format("-- transforming '%s'\n", @source.table_name)
       end
 
-    time_block(before_message, "   -> %fs\n", &method(:transform!))
+    time_block(before_message, "   -> %fs\n") do
+      transform!(schema)
+    end
   end
 
   private
@@ -121,25 +123,27 @@ class DatabaseTransform::SchemaTable
 
   # Performs the transform with the given parameters.
   #
+  # @param [DatabaseTransform::Schema] schema The schema being transformed.
   # @return [Void]
-  def transform!
+  def transform!(schema)
     # For each item in the old model
     default_scope = @default_scope || @source.method(:all)
     @source.instance_exec(&default_scope).each do |record|
-      transform_record!(record)
+      transform_record!(schema, record)
     end
   end
 
   # Transforms one record from the source model to the destination.
   #
+  # @param [DatabaseTransform::Schema] schema The schema being transformed.
   # @param [ActiveRecord::Base] old The record to map.
   # @return [Void]
-  def transform_record!(old)
+  def transform_record!(schema, old)
     # Instantiate a new model record
     new = @destination.new if @destination
 
     # Map the columns over
-    transform_record_columns!(old, new)
+    transform_record_columns!(schema, old, new)
     return if new.nil? || new.frozen?
 
     save_transformed_record(old, new)
@@ -147,14 +151,15 @@ class DatabaseTransform::SchemaTable
 
   # Applies the column transforms over the old record to the new record.
   #
+  # @param [DatabaseTransform::Schema] schema The schema being transformed.
   # @param [ActiveRecord::Base] old The record to map.
   # @param [ActiveRecord::Base] new The record to map to.
   # @return [Void]
-  def transform_record_columns!(old, new)
+  def transform_record_columns!(schema, old, new)
     @columns.each do |column|
       fail ArgumentError.new unless column.is_a?(Hash)
 
-      new_value = transform_record_field!(old, new, column[:from], column[:block])
+      new_value = transform_record_field!(schema, old, new, column[:from], column[:block])
 
       unless new.nil?
         break if new.frozen?
@@ -167,12 +172,13 @@ class DatabaseTransform::SchemaTable
 
   # Transforms one record's field.
   #
+  # @param [DatabaseTransform::Schema] schema The schema being transformed.
   # @param [ActiveRecord::Base] source The source row to map the values for.
   # @param [ActiveRecord::Base] destination The destination row to map the values to.
   # @param [Array<Symbol>] from The source columns to be used to map to the destination column.
   # @param [Proc, nil] block The block to transform the source values to the destination value.
   # @return The result of applying the transform over the input values.
-  def transform_record_field!(source, destination, from = nil, block = nil)
+  def transform_record_field!(schema, source, destination, from = nil, block = nil)
     # Get the old record column values (can be a block taking multiple arguments)
     new_values = from.map { |k| source.send(k) }
 
@@ -181,13 +187,25 @@ class DatabaseTransform::SchemaTable
       new_values.first
     elsif destination
       # Map the value if necessary.
-      # TODO: Provide the schema instance to the callback.
-      #       We should ensure that the block has a way to access the schema.
-      destination.instance_exec(*new_values, &block)
+      execute_transform_block!(schema, destination, block, new_values)
     else
       # Call the proc
-      block.call(*new_values)
+      execute_transform_block!(schema, Object.new, block, new_values)
     end
+  end
+
+  # Executes the given transform block.
+  #
+  # This allows the transform to be given an appropriate value of self such that it can access the old record and the schema being used.
+  #
+  # @param [DatabaseTransform::Schema] schema The schema being transformed.
+  # @param self_ The object to use as self in the context of the block.
+  # @param [Proc] block The block to execute.
+  # @param [Array] args The arguments to give to the block.
+  # @return The result of applying the block.
+  def execute_transform_block!(schema, self_, block, args)
+    self_.define_singleton_method(:schema) { schema }
+    self_.instance_exec(*args, &block)
   end
 
   # Assigns the transformed value to the new record, raising an argument error if the field was declared to not be
