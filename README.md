@@ -81,6 +81,7 @@ A summary of methods:
     - `default_scope` allows the programmer to specify the records to transform
 - `primary_key` declares the name of column with the primary key. This allows later access when relations need to be
   mapped.
+    - Use the `transform` and `transformed?` methods on the model to obtain the transformed object.
 - `column` declares how to transform the contents of that column from the old database to the new one.
     - If `to:` is omitted, then it is assumed that the transfer function is the identity function, and the column would
       map across as the same name.
