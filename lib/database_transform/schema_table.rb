@@ -66,6 +66,8 @@ class DatabaseTransform::SchemaTable
   #   together with if.
   # @option options [Proc] if A proc to call. The record will be saved if the proc returns a true value. This cannot be
   #   used together with unless.
+  # @option options [Boolean] validate Whether to run the model validations when saving the transformed record. Defaults
+  #   to true.
   def save(options = {})
     raise ArgumentError.new('unless and if cannot be both specified') if options[:unless] && options[:if]
     raise ArgumentError.new('Cannot specify a save clause twice for the same table') if @save
@@ -74,6 +76,7 @@ class DatabaseTransform::SchemaTable
       clause = options.delete(:unless)
       options[:if] = ->(*callback_args) { !self.instance_exec(*callback_args, &clause) }
     end
+    options[:validate] = true unless options.has_key?(:validate)
 
     @save = options
   end
@@ -236,9 +239,9 @@ class DatabaseTransform::SchemaTable
   def save_transformed_record(old, new)
     # Save. Skip if the conditional callback is given
     return if @save && @save[:if] && !new.instance_exec(&@save[:if])
+    validate = @save ? @save[:validate] : nil
 
-    # TODO: Make validation optional using the save clause.
-    new.save!(validate: false) unless new.destroyed?
+    new.save!(validate: validate != false) unless new.destroyed?
     @source.memoize_transform(old.send(@primary_key), new) if @primary_key
   end
 end

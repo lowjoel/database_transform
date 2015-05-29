@@ -58,6 +58,20 @@ RSpec.describe DatabaseTransform::SchemaTable do
         expect(subject.instance_variable_get(:@save)[:if]).to be_truthy
       end
     end
+
+    context 'when #save is given a validate clause' do
+      it 'follows the value' do
+        subject.save validate: false
+        expect(subject.instance_variable_get(:@save)[:validate]).to eq(false)
+      end
+    end
+
+    context 'when #save is not given a validate clause' do
+      it 'defaults to true' do
+        subject.save
+        expect(subject.instance_variable_get(:@save)[:validate]).to be_truthy
+      end
+    end
   end
 
   describe '#transform!' do
@@ -277,6 +291,30 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
       it 'stops the transform' do
         subject.run_transform
+      end
+    end
+
+    context 'when a transform specifies the save behaviour' do
+      class TrueError < StandardError; end
+      class FalseError < StandardError; end
+
+      before do
+        subject.column :id do |id|
+          define_singleton_method(:save!) do |options|
+            raise TrueError.new if options[:validate]
+            raise FalseError.new
+          end
+          id
+        end
+      end
+
+      it 'saves without validation' do
+        subject.save validate: false
+        expect { subject.run_transform }.to raise_error(FalseError)
+      end
+
+      it 'saves with validation' do
+        expect { subject.run_transform }.to raise_error(TrueError)
       end
     end
   end
