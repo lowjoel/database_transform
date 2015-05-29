@@ -86,12 +86,12 @@ class DatabaseTransform::SchemaTable
   def run_transform(schema = nil)
     before_message =
       if @destination
-        format("-- transforming '%s' to '%s'\n", @source.table_name, @destination.table_name)
+        format("-- transforming '%s' to '%s'", @source.table_name, @destination.table_name)
       else
-        format("-- transforming '%s'\n", @source.table_name)
+        format("-- transforming '%s'", @source.table_name)
       end
 
-    time_block(before_message, "   -> %fs\n") do
+    time_block(before_message, "   -> %fs") do
       transform!(schema)
     end
   end
@@ -114,14 +114,14 @@ class DatabaseTransform::SchemaTable
   # @yield The block to time.
   def time_block(before, after, &proc)
     start = Time.now
-    $stderr.puts(before)
+    $stderr.printf("%s\n", before)
 
-    result = proc.call
-
-    complete = Time.now - start
-    $stderr.printf(after, complete)
-
-    result
+    proc.call
+  rescue Exception
+    $stderr.printf("%s (error)\n", format(after, Time.now - start))
+    raise
+  else
+    $stderr.printf("%s\n", format(after, Time.now - start))
   end
 
   # Performs the transform with the given parameters.
