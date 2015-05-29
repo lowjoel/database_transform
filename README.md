@@ -67,32 +67,32 @@ end
 
 A summary of methods:
 
- - `transform_table` tells Database Transform to perform the given transform over records in the given source table.
-   - The first argument is the table to transform. This can be a symbol, string, or an ActiveRecord model.
-   - `to` specifies the new table to transform to. This can be a symbol, string, or an ActiveRecord model.
-     - If either argument is a symbol or string, an ActiveRecord model is generated which allows access to the record's
-       data.
-       - Source models are found in the Source namespace, and can be used as the `posts.uid` column above.
-       - Destination models are found in the Destination namespace.
-     - In all cases, the model will have extra accessory methods:
-       - `transform(old_primary_key)`: This takes a primary key in the source table, and returns the transformed object.
-         This only returns a valid result after the object has been transformed.
-       - `transformed?(old_primary_key)`: This checks if the object has been transformed.
-   - `default_scope` allows the programmer to specify the records to transform
- - `primary_key` declares the name of column with the primary key. This allows later access when relations need to be
-    mapped.
- - `column` declares how to transform the contents of that column from the old database to the new one.
-   - If `to:` is omitted, then it is assumed that the transfer function is the identity function, and the column would
-     map across as the same name.
-   - If `null: false` is specified, the value assigned to the column (in `to`) will be checked for nullity.
-   - A block can be provided.
-     - If so, then the data from the old record is passed to the block as the first argument
-     - In the context of the block, `self` refers to the new record.
-     - `self` has an additional attribute `source_record` which refers to the old record.
-     - `self` has an additional attribute `schema` which refers to the transformation schema.
- - `save` declares whether the new record should be saved.
-   - `if` and `unless` accepts a block which will be evaluated to determine if the record should be saved.
-   - `validate` will allow the record to be saved bypassing validations. This defaults to `true`.
+- `transform_table` tells Database Transform to perform the given transform over records in the given source table.
+    - The first argument is the table to transform. This can be a symbol, string, or an ActiveRecord model.
+    - `to` specifies the new table to transform to. This can be a symbol, string, or an ActiveRecord model.
+        - If either argument is a symbol or string, an ActiveRecord model is generated which allows access to the
+          record's data.
+            - Source models are found in the Source namespace, and can be used as the `posts.uid` column above.
+            - Destination models are found in the Destination namespace.
+        - In all cases, the model will have extra accessory methods:
+            - `transform(old_primary_key)`: This takes a primary key in the source table, and returns the transformed
+              object. This only returns a valid result after the object has been transformed.
+            - `transformed?(old_primary_key)`: This checks if the object has been transformed.
+    - `default_scope` allows the programmer to specify the records to transform
+- `primary_key` declares the name of column with the primary key. This allows later access when relations need to be
+  mapped.
+- `column` declares how to transform the contents of that column from the old database to the new one.
+    - If `to:` is omitted, then it is assumed that the transfer function is the identity function, and the column would
+      map across as the same name.
+    - If `null: false` is specified, the value assigned to the column (in `to`) will be checked for nullity.
+    - A block can be provided.
+        - If so, then the data from the old record is passed to the block as the first argument
+        - In the context of the block, `self` refers to the new record.
+        - `self` has an additional attribute `source_record` which refers to the old record.
+        - `self` has an additional attribute `schema` which refers to the transformation schema.
+- `save` declares whether the new record should be saved.
+    - `if` and `unless` accepts a block which will be evaluated to determine if the record should be saved.
+    - `validate` will allow the record to be saved bypassing validations. This defaults to `true`.
 
 Finally, execute the Rake task:
 
@@ -101,8 +101,8 @@ Finally, execute the Rake task:
 And the schema (`MyOldAppSchema`) and database connection (via `my_old_app_production`) will be established for you. A
 few variants of the schema name will be checked:
 
- - my_old_app
- - my_old_app_production
+- my_old_app
+- my_old_app_production
 
 Only the *source* schema will be annotated to use the other connection. The *destination* schema will be used through
 the application's normal configuration (i.e. depends on the value of `ENV['RAILS_ENV']`.)
