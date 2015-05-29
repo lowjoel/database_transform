@@ -96,7 +96,7 @@ A summary of methods:
 
 Finally, execute the Rake task:
 
-    $ rake db:transform my_old_app
+    $ rake db:transform[my_old_app]
 
 And the schema (`MyOldAppSchema`) and database connection (via `my_old_app_production`) will be established for you. A
 few variants of the schema name will be checked:
@@ -106,6 +106,21 @@ few variants of the schema name will be checked:
 
 Only the *source* schema will be annotated to use the other connection. The *destination* schema will be used through
 the application's normal configuration (i.e. depends on the value of `ENV['RAILS_ENV']`.)
+
+Additional arguments can be passed to the schema. All arguments specified in the Rake command following the schema name
+will be passed to the initialiser of the schema.
+
+```ruby
+class MyOldAppWithArgumentsSchema < DatabaseTransform::Schema
+  def initialize(uploads_path)
+    @uploads_path = uploads_path
+  end
+end
+```
+
+    $ rake db:transform[my_old_app_with_arguments,/home/joel/server/dumps/path]
+
+These arguments then can be used from within any transform blocks by accessing the `schema` property.
 
 ## Contributing
 

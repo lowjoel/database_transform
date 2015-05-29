@@ -2,13 +2,12 @@
 class DatabaseTransform::Transform
   def initialize(args)
     @schema = args.schema_name
-    @extra_args = args.extras
-    run
+    @argv = args.extras
   end
 
   def run
-    import_schema
-    schema = @schema.constantize.new
+    require_schema
+    schema = @schema.camelize.constantize.new(*@argv)
 
     ActiveRecord::Base.logger = Logger.new('log/import.log')
     schema.transform!
@@ -16,7 +15,7 @@ class DatabaseTransform::Transform
 
   private
 
-  def import_schema
+  def require_schema
     schema_file = @schema.underscore
     begin
       return require(File.join(Rails.root, 'db', 'transforms', schema_file))
@@ -30,6 +29,6 @@ end
 namespace :db do
   desc 'Transform old database schemas'
   task :transform, [:schema_name] => :environment do |_, args|
-    DatabaseTransform::Transform.new(args)
+    DatabaseTransform::Transform.new(args).run
   end
 end
