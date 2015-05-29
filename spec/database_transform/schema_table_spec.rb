@@ -147,6 +147,25 @@ RSpec.describe DatabaseTransform::SchemaTable do
           end
         end
       end
+
+      context 'when no destination model is specified' do
+        let(:destination_model) { nil }
+        before do
+          subject.column :val
+          subject.column :val, :content, to: :content do |val, content|
+            Destination.create(val: val, content: content)
+          end
+        end
+
+        it 'provides all columns to the block' do
+          Destination.delete_all
+          subject.run_transform
+          expect(Destination.count).not_to be(0)
+          Destination.all.each do |row|
+            expect(row.content).to eq(format('%d counts!', row.val))
+          end
+        end
+      end
     end
 
     context 'when a mapping transform is not specified' do
@@ -202,25 +221,6 @@ RSpec.describe DatabaseTransform::SchemaTable do
         expect(destination_model.count).not_to be(0)
         source_model.all.each do |row|
           expect(source_model.transform(row.id)).to_not be_nil
-        end
-      end
-    end
-
-    context 'when no destination model is specified' do
-      let(:destination_model) { nil }
-      before do
-        subject.column :val
-        subject.column :val, :content, to: :content do |val, content|
-          Destination.create(val: val, content: content)
-        end
-      end
-
-      it 'provides all columns to the block' do
-        Destination.delete_all
-        subject.run_transform
-        expect(Destination.count).not_to be(0)
-        Destination.all.each do |row|
-          expect(row.content).to eq(format('%d counts!', row.val))
         end
       end
     end
