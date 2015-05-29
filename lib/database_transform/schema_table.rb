@@ -208,8 +208,8 @@ class DatabaseTransform::SchemaTable
   # @param [Array] args The arguments to give to the block.
   # @return The result of applying the block.
   def execute_transform_block!(schema, source_record, self_, block, args)
-    self_.define_singleton_method(:source_record) { source_record }
-    self_.define_singleton_method(:schema) { schema }
+    self_.define_singleton_method(:source_record) { source_record } unless self_.respond_to?(:source_record)
+    self_.define_singleton_method(:schema) { schema } unless self_.respond_to?(:schema)
     self_.instance_exec(*args, &block)
   end
 
