@@ -46,7 +46,7 @@ Then, define the define a transform in `db/transforms/my_old_app_schema.rb`:
 
 ```ruby
 class MyOldAppSchema < DatabaseTransform::Schema
-  transform_table :users, to: ::User, scope: proc { where('uid <> 0') } do
+  transform_table :users, to: ::User, default_scope: proc { where('uid <> 0') } do
     primary_key :uid
     column :mail, to: :email
     column :pass, to: :password do |password|
