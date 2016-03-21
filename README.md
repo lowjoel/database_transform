@@ -42,7 +42,8 @@ my_old_app_production:
   database: my_old_app
 ```
 
-Then, define the define a transform in `db/transforms/my_old_app_schema.rb`:
+Then, define a transform in `db/transforms/my_old_app_schema.rb` (or `db/transforms/my_old_app_schema/my_old_app_schema.rb`
+if there are many files and you want to organize them in a folder):
 
 ```ruby
 class MyOldAppSchema < DatabaseTransform::Schema
