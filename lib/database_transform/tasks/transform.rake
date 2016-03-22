@@ -16,13 +16,14 @@ class DatabaseTransform::Transform
   private
 
   def require_schema
-    schema_file = @schema.underscore
-    begin
-      return require(File.join(Rails.root, 'db', 'transforms', schema_file))
-    rescue LoadError
-    end
+    schema_name = @schema.underscore
+    schema_files = [
+        File.join(Rails.root, 'db', 'transforms', schema_name),
+        File.join(Rails.root, 'db', 'transforms', schema_name, schema_name)
+    ]
 
-    require (File.join(Rails.root, 'db', 'transforms', schema_file, schema_file))
+    schema_file = schema_files.find { |f| File.exist?(f) } || schema_files.first
+    require schema_file
   end
 end
 
