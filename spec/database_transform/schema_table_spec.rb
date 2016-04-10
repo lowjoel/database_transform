@@ -109,6 +109,19 @@ RSpec.describe DatabaseTransform::SchemaTable do
       end
     end
 
+    context 'when collection does not respond to #find_in_batches' do
+      let(:options) { { default_scope: proc { all.to_a } } }
+      before do
+        subject.column :id, to: :id
+      end
+
+      it 'transforms all the records' do
+        destination_model.delete_all
+        subject.run_transform
+        expect(destination_model.count).not_to be(0)
+      end
+    end
+
     context 'when a mapping transform is specified' do
       class DummySchema < DatabaseTransform::Schema
         class_attribute :magic_cookie
