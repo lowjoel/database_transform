@@ -4,13 +4,16 @@ class DatabaseTransform::SchemaTable
   #
   # @param [Class] source The model class to map source records from
   # @param [Class] destination The model class to map destination records to
-  # @param [nil, Proc] default_scope The default scope for querying the source table.
-  def initialize(source, destination, default_scope)
+  # @param [Hash] options following options are accepted:
+  #   :default_scope The default scope for querying the source table.
+  #   :batch_size The number of records fetched in each batch, which will be passed to ActiveRecord::Batches#find_in_batches
+  def initialize(source, destination, options)
     @source = source
     @source.extend(DatabaseTransform::SchemaTableRecordMapping)
     @destination = destination
     @destination.extend(DatabaseTransform::SchemaTableRecordMapping) if @destination
-    @default_scope = default_scope
+    @default_scope = options[:default_scope]
+    @batch_size = options[:batch_size]
 
     @primary_key = nil
     @save = nil
@@ -131,8 +134,24 @@ class DatabaseTransform::SchemaTable
   def transform!(schema)
     # For each item in the old model
     default_scope = @default_scope || @source.method(:all)
-    @source.instance_exec(&default_scope).each do |record|
-      transform_record!(schema, record)
+    collection = @source.instance_exec(&default_scope)
+
+    in_batches(collection) do |group|
+      group.each { |record| transform_record!(schema, record) }
+    end
+  end
+
+  # Transform a collection of records in batches. This method uses `find_in_batches` to split the large collection and
+  # improve performance.
+  #
+  # @param [Array|ActiveRecord::Relation] collection The records.
+  # @param [Proc] block The block to transform a group of records.
+  # @return [Void]
+  def in_batches(collection, &block)
+    if collection.respond_to?(:find_in_batches)
+      collection.find_in_batches(batch_size: @batch_size, &block)
+    else
+      yield collection
     end
   end
 

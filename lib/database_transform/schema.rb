@@ -18,7 +18,7 @@ class DatabaseTransform::Schema
 
     source_table, args[:to] = prepare_models(source_table, args[:to])
 
-    transform = DatabaseTransform::SchemaTable.new(source_table, args[:to], args[:default_scope])
+    transform = DatabaseTransform::SchemaTable.new(source_table, args[:to], args.slice(:default_scope, :batch_size))
     tables[source_table] = { depends: args[:depends] || [], transform: transform }
     transform.instance_eval(&proc) if proc
   end

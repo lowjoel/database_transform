@@ -1,10 +1,10 @@
 require 'spec_helper'
 
 RSpec.describe DatabaseTransform::SchemaTable do
-  subject { DatabaseTransform::SchemaTable.new(source_model, destination_model, default_scope) }
+  subject { DatabaseTransform::SchemaTable.new(source_model, destination_model, options) }
   let(:source_model) { Source }
   let(:destination_model) { Destination }
-  let(:default_scope) { nil }
+  let(:options) { {} }
   let(:dummy_records) do
     Source.transaction do
       (0..3).each do |i|
@@ -94,7 +94,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
     end
 
     context 'when a default scope is specified' do
-      let(:default_scope) { proc { where('id % 2 = 0') } }
+      let(:options) { { default_scope: proc { where('id % 2 = 0') } } }
       before do
         subject.column :id, to: :id
       end
