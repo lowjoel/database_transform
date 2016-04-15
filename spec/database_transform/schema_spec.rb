@@ -38,6 +38,22 @@ RSpec.describe DatabaseTransform::Schema do
     end
   end
 
+  describe 'configurations' do
+    class DummySchemaWithConfiguration < DatabaseTransform::Schema
+      concurrency 4
+
+      transform_table :source, to: 'destination' do
+      end
+    end
+    let(:schema) { DummySchemaWithConfiguration.new }
+
+    describe '.concurrency' do
+      subject { schema.concurrency }
+
+      it { is_expected.to eq(4) }
+    end
+  end
+
   describe '.transform_table' do
     it 'defines models for symbol source tables' do
       expect(DummySchema::Source.const_defined?(:Source)).to be_truthy

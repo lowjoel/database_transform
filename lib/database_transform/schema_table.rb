@@ -136,9 +136,15 @@ class DatabaseTransform::SchemaTable
     default_scope = @default_scope || @source.method(:all)
     collection = @source.instance_exec(&default_scope)
 
+    pool_size = schema && schema.concurrency ? schema.concurrency : 1
+    pool = DatabaseTransform::ThreadPool.new(pool_size)
     in_batches(collection) do |group|
-      group.each { |record| transform_record!(schema, record) }
+      pool.schedule do
+        group.each { |record| transform_record!(schema, record) }
+      end
     end
+
+    pool.wait
   end
 
   # Transform a collection of records in batches. This method uses `find_in_batches` to split the large collection and
