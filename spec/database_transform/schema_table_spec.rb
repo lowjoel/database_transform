@@ -101,7 +101,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
       it 'all records match the default scope' do
         destination_model.delete_all
-        subject.run_transform
+        subject.run_transform(DummySchema.new)
         expect(destination_model.count).not_to be(0)
         destination_model.all.each do |row|
           expect(row.id % 2).to eq(0)
@@ -117,7 +117,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
       it 'transforms all the records' do
         destination_model.delete_all
-        subject.run_transform
+        subject.run_transform(DummySchema.new)
         expect(destination_model.count).not_to be(0)
       end
     end
@@ -140,7 +140,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
         subject.column :val do |val|
           fail if val != source_record.val
         end
-        subject.run_transform
+        subject.run_transform(DummySchema.new)
       end
 
       context 'when multiple source columns are specified' do
@@ -153,7 +153,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
         it 'provides all columns to the block' do
           destination_model.delete_all
-          subject.run_transform
+          subject.run_transform(DummySchema.new)
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.content).to eq(format('%d%d counts!', row.val, row.val))
@@ -170,7 +170,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
         it 'sets the corresponding column with the result of the transform' do
           destination_model.delete_all
-          subject.run_transform
+          subject.run_transform(DummySchema.new)
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.id % 2).to eq(1)
@@ -187,7 +187,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
         it 'does not modify the record' do
           destination_model.delete_all
-          subject.run_transform
+          subject.run_transform(DummySchema.new)
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.val).to be_nil
@@ -206,7 +206,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
         it 'provides all columns to the block' do
           Destination.delete_all
-          subject.run_transform
+          subject.run_transform(DummySchema.new)
           expect(Destination.count).not_to be(0)
           Destination.all.each do |row|
             expect(row.content).to eq(format('%d counts!', row.val))
@@ -224,7 +224,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
         it 'sets the corresponding column' do
           destination_model.delete_all
-          subject.run_transform
+          subject.run_transform(DummySchema.new)
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.val.to_s).to eq(row.content)
@@ -244,7 +244,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
         end
         it 'sets the corresponding column with the same name in the destination' do
           destination_model.delete_all
-          subject.run_transform
+          subject.run_transform(DummySchema.new)
           expect(destination_model.count).not_to be(0)
           destination_model.all.each do |row|
             expect(row.content).not_to be_nil
@@ -264,7 +264,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
       it 'can find every new model object created' do
         destination_model.delete_all
-        subject.run_transform
+        subject.run_transform(DummySchema.new)
         expect(destination_model.count).not_to be(0)
         source_model.all.each do |row|
           expect(source_model.transform(row.id)).to_not be_nil
@@ -303,7 +303,7 @@ RSpec.describe DatabaseTransform::SchemaTable do
       end
 
       it 'stops the transform' do
-        subject.run_transform
+        subject.run_transform(DummySchema.new)
       end
     end
 
@@ -323,11 +323,11 @@ RSpec.describe DatabaseTransform::SchemaTable do
 
       it 'saves without validation' do
         subject.save validate: false
-        expect { subject.run_transform }.to raise_error(FalseError)
+        expect { subject.run_transform(DummySchema.new) }.to raise_error(FalseError)
       end
 
       it 'saves with validation' do
-        expect { subject.run_transform }.to raise_error(TrueError)
+        expect { subject.run_transform(DummySchema.new) }.to raise_error(TrueError)
       end
     end
   end

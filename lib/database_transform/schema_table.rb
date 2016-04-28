@@ -86,7 +86,7 @@ class DatabaseTransform::SchemaTable
 
   # @api private
   #   To be called only by Schema#run_transform
-  def run_transform(schema = nil)
+  def run_transform(schema)
     before_message =
       if @destination
         format("-- transforming '%s' to '%s'", @source.table_name, @destination.table_name)
