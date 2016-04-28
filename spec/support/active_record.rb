@@ -10,6 +10,7 @@ RSpec.configure do
   ActiveRecord::Base.configurations['dummy_schema_production'] = dummy_connection
   ActiveRecord::Base.configurations['dummy_schema4'] = dummy_connection
   ActiveRecord::Base.configurations['dummy_cyclic_dependency_schema'] = dummy_connection
+  ActiveRecord::Base.configurations['dummy_schema_with_configuration'] = dummy_connection
 
   ActiveRecord::Base.establish_connection(:default)
   puts "SQLite #{ActiveRecord::Base.connection.execute('SELECT sqlite_version()')}\n"

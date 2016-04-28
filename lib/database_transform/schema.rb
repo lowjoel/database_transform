@@ -23,7 +23,17 @@ class DatabaseTransform::Schema
     transform.instance_eval(&proc) if proc
   end
 
+  delegate :concurrency, to: :class
   class << self
+    # Store the block if a block is given, otherwise the stored block will be returned.
+    def concurrency(number = nil)
+      if number
+        @concurrency = number
+      else
+        @concurrency
+      end
+    end
+
     private
 
     def prepare_models(source_table, destination_table)

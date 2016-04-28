@@ -13,5 +13,7 @@ module DatabaseTransform
   autoload :SchemaTableRecordMapping
   autoload :SchemaTable
 
+  autoload :ThreadPool
+
   require 'database_transform/railtie' if defined?(Rails)
 end
